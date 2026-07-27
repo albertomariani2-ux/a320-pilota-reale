@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volare l'A320 Come un Pilota Reale</title>
+<meta property="og:title" content="Volare l'A320 Come un Pilota Reale">
+<meta property="og:description" content="Dal pre-flight al touchdown: procedure CRM, MCDU, SimBrief e checklist professionali — basato sui protocolli di volo di Alberto Mariani.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --bg:#0a1420;
+  --panel:#101c2c;
+  --panel-hi:#152436;
+  --line:#25384e;
+  --text:#e6edf5;
+  --muted:#7d90a6;
+  --cyan:#5fd0ec;
+  --cyan-dim:#3a7d94;
+  --amber:#f2a93b;
+  --green:#49d68a;
+  --red:#e2586a;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* subtle instrument-panel backdrop texture */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  opacity:0.05;
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+/* ---------- HERO ---------- */
+.hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:80px 0 60px;
+  border-bottom:1px solid var(--line);
+}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--cyan);
+  font-size:13px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  margin-bottom:22px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.hero-eyebrow::before{
+  content:"";
+  width:8px;height:8px;
+  background:var(--green);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--green);
+}
+.hero h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:clamp(38px,7vw,68px);
+  line-height:1.05;
+  letter-spacing:-0.01em;
+  color:#fff;
+  max-width:780px;
+}
+.hero h1 span{color:var(--cyan);}
+.hero p.lead{
+  margin-top:24px;
+  font-size:19px;
+  color:var(--muted);
+  max-width:560px;
+}
+.hero-sig{
+  margin-top:44px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  color:var(--muted);
+  border:1px solid var(--line);
+  background:var(--panel);
+  display:inline-block;
+  padding:10px 16px;
+  border-radius:4px;
+}
+.hero-sig b{color:var(--text);font-weight:500;}
+
+/* ---------- PHASE NAV (signature element) ---------- */
+.phase-nav{
+  position:sticky; top:0;
+  z-index:5;
+  background:rgba(10,20,32,0.92);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  padding:12px 0;
+  overflow-x:auto;
+}
+.phase-nav-inner{
+  max-width:920px;margin:0 auto;padding:0 24px;
+  display:flex; gap:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  white-space:nowrap;
+}
+.phase-nav a{
+  color:var(--muted);
+  text-decoration:none;
+  padding:6px 10px;
+  border:1px solid var(--line);
+  border-radius:3px;
+  transition:all .15s ease;
+}
+.phase-nav a:hover{color:var(--cyan);border-color:var(--cyan-dim);}
+.phase-nav a.active{
+  color:#001a22;
+  background:var(--cyan);
+  border-color:var(--cyan);
+  font-weight:700;
+}
+
+/* ---------- SECTIONS ---------- */
+section.phase{
+  padding:88px 0;
+  border-bottom:1px solid var(--line);
+  scroll-margin-top:56px;
+}
+.phase-label{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--cyan);
+  font-size:13px;
+  letter-spacing:0.1em;
+  margin-bottom:10px;
+}
+h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:clamp(26px,4vw,36px);
+  color:#fff;
+  margin-bottom:28px;
+  letter-spacing:-0.01em;
+}
+h3{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:17px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:10px;
+}
+p{color:var(--muted); margin-bottom:14px;}
+p b, li b{color:var(--text); font-weight:600;}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:20px;}
+@media (max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:20px 22px;
+}
+.card.warn{border-color:#5a4420; background:#1a1509;}
+.card.warn h3{color:var(--amber);}
+.card.good{border-color:#1e4a35; background:#0d1a15;}
+.card.good h3{color:var(--green);}
+
+ul{padding-left:20px; color:var(--muted);}
+li{margin-bottom:8px;}
+
+/* MCDU / readout style block — used for callouts & data */
+.readout{
+  font-family:'JetBrains Mono',monospace;
+  background:#040d16;
+  border:1px solid var(--cyan-dim);
+  border-radius:4px;
+  padding:18px 20px;
+  font-size:13.5px;
+  line-height:1.9;
+  overflow-x:auto;
+}
+.readout .pm{color:var(--cyan);}
+.readout .pf{color:var(--green);}
+.readout .tag{color:var(--muted); font-size:11px;}
+.readout .val{color:var(--amber);}
+
+.callout-row{
+  display:flex; justify-content:space-between; gap:16px;
+  padding:8px 0; border-bottom:1px dashed var(--line);
+  font-family:'JetBrains Mono',monospace; font-size:13px;
+}
+.callout-row:last-child{border-bottom:none;}
+.callout-row .who{color:var(--cyan); min-width:36px;}
+.callout-row .who.pf{color:var(--green);}
+
+.pill{
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  padding:3px 9px;
+  border-radius:3px;
+  border:1px solid var(--line);
+  color:var(--muted);
+  margin-right:6px; margin-bottom:6px;
+}
+
+.law-track{display:flex; flex-direction:column; gap:0; margin-top:20px;}
+.law-step{
+  display:grid; grid-template-columns:140px 1fr; gap:20px;
+  border-left:3px solid var(--line);
+  padding:16px 20px;
+}
+.law-step.normal{border-color:var(--green);}
+.law-step.alt{border-color:var(--amber);}
+.law-step.direct{border-color:var(--red);}
+.law-step .name{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px;}
+.law-step.normal .name{color:var(--green);}
+.law-step.alt .name{color:var(--amber);}
+.law-step.direct .name{color:var(--red);}
+.law-step p{margin:0; font-size:14px;}
+
+.formula{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--panel-hi);
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:20px;
+  text-align:center;
+  font-size:15px;
+  margin-top:16px;
+}
+.formula .big{color:var(--cyan); font-size:22px; font-weight:700;}
+
+/* ECAM pyramid */
+.ecam-tier{
+  padding:16px 20px;
+  border-radius:4px;
+  margin-bottom:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+}
+.ecam-tier b{font-family:'Space Grotesk',sans-serif; font-size:14px; display:block; margin-bottom:4px;}
+.ecam-warning{background:#3a1420; border:1px solid var(--red); color:#f5b3bd;}
+.ecam-warning b{color:var(--red);}
+.ecam-caution{background:#2e2308; border:1px solid var(--amber); color:#f4d9a3;}
+.ecam-caution b{color:var(--amber);}
+.ecam-advisory{background:#1b2432; border:1px solid var(--cyan-dim); color:#bcdce8;}
+.ecam-advisory b{color:var(--cyan);}
+.ecam-status{background:#151f2c; border:1px solid var(--line); color:var(--muted);}
+.ecam-status b{color:var(--text);}
+
+/* footer / closing loop */
+.closing{
+  padding:100px 0 120px;
+  text-align:center;
+}
+.closing-loop{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--cyan);
+  font-size:13px;
+  letter-spacing:0.15em;
+  margin-bottom:20px;
+}
+.closing h2{max-width:640px; margin:0 auto 20px;}
+.closing p{max-width:520px; margin:0 auto 30px;}
+.blue-skies{
+  font-family:'Space Grotesk',sans-serif;
+  color:#fff;
+  font-size:20px;
+  letter-spacing:0.02em;
+}
+.credit{
+  margin-top:60px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+  padding-top:24px;
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">Guida operativa &middot; A32NX / FlyByWire</div>
+    <h1>Volare l'A320<br><span>Come un Pilota Reale</span></h1>
+    <p class="lead">Dal pre-flight al touchdown: procedure CRM, MCDU, SimBrief e checklist professionali, in un'unica sequenza operativa.</p>
+    <div class="hero-sig">Basato sui protocolli di volo di <b>Alberto Mariani</b></div>
+  </div>
+</div>
+
+<nav class="phase-nav">
+  <div class="phase-nav-inner" id="navlinks">
+    <a href="#mentalita">MENTALITÀ</a>
+    <a href="#crm">CRM</a>
+    <a href="#dark-cockpit">DARK COCKPIT</a>
+    <a href="#ecam">ECAM</a>
+    <a href="#fbw">FLY-BY-WIRE</a>
+    <a href="#efb">EFB</a>
+    <a href="#throttle">THROTTLE</a>
+    <a href="#ofp">OFP</a>
+    <a href="#flex">FLEX</a>
+    <a href="#mcdu">MCDU INIT</a>
+    <a href="#fpln">F-PLN/PERF</a>
+    <a href="#checklist">CHECKLIST</a>
+    <a href="#preflight">PRE-FLIGHT</a>
+    <a href="#taxi">TAXI</a>
+    <a href="#takeoff">DECOLLO</a>
+    <a href="#climb">SALITA</a>
+    <a href="#cruise">CROCIERA</a>
+    <a href="#briefing">BRIEFING</a>
+    <a href="#landing">ATTERRAGGIO</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<section class="phase" id="mentalita">
+  <div class="phase-label">01 &mdash; APPROCCIO</div>
+  <h2>La differenza non sono le ore di volo, ma la mentalità.</h2>
+  <div class="grid2">
+    <div class="card warn">
+      <h3>Errore comune dei simmer</h3>
+      <p>Giocare con i sistemi e modificare parametri senza una ragione operativa. Cercare complicazioni e reazioni improvvisate.</p>
+    </div>
+    <div class="card good">
+      <h3>Mentalità "Normal Procedures First"</h3>
+      <p>Toccare solo ciò che serve, quando serve, seguendo la procedura. La normalità è la meta: meno azioni inutili significa meno errori.</p>
+    </div>
+  </div>
+  <p style="margin-top:20px">Il passaggio al livello successivo richiede metodologia, consapevolezza situazionale e comunicazione CRM.</p>
+</section>
+
+<section class="phase" id="crm">
+  <div class="phase-label">02 &mdash; FILOSOFIA</div>
+  <h2>Il Sistema CRM: lavorare come un'unica mente.</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>PF &mdash; Pilot Flying</h3>
+      <p>Controlla l'aeromobile, gestisce l'automazione, comanda le manovre.</p>
+    </div>
+    <div class="card">
+      <h3>PM &mdash; Pilot Monitoring</h3>
+      <p>Esegue le checklist, monitora strumenti, legge i callout, gestisce le radio.</p>
+    </div>
+  </div>
+  <p style="margin-top:20px">Il ciclo CRM: <b>comunicazione esplicita</b> &rarr; <b>challenge &amp; response</b> &rarr; <b>cross-check</b> &rarr; <b>callout standardizzati</b> &rarr; <b>assertività</b>.</p>
+</section>
+
+<section class="phase" id="dark-cockpit">
+  <div class="phase-label">03 &mdash; FILOSOFIA</div>
+  <h2>La filosofia "Dark Cockpit"</h2>
+  <div class="card good" style="margin-bottom:20px">
+    <h3>Concetto chiave</h3>
+    <p style="margin:0">Nessun indicatore o spia accesa = situazione normale.</p>
+  </div>
+  <ul>
+    <li>Overhead panel spento (tranne luci di sistema ON)? <b>Normale.</b></li>
+    <li>FCU con valori coerenti con la fase di volo? <b>Normale.</b></li>
+    <li>ECAM pagina motori senza messaggi? <b>Normale.</b></li>
+  </ul>
+  <div class="card warn" style="margin-top:16px">
+    <p style="margin:0">Durante lo scan, cerchi <b>anomalie</b>, non conferme. Se qualcosa è acceso che non dovrebbe esserlo: investigare subito.</p>
+  </div>
+</section>
+
+<section class="phase" id="ecam">
+  <div class="phase-label">04 &mdash; SISTEMI</div>
+  <h2>Gerarchia dei messaggi ECAM</h2>
+  <div class="ecam-tier ecam-warning"><b>WARNING</b>Pericolo immediato, sistema critico compromesso &mdash; azione immediata (memory items).</div>
+  <div class="ecam-tier ecam-caution"><b>CAUTION</b>Attenzione richiesta, sistema degradato &mdash; azione appena possibile (ECAM actions).</div>
+  <div class="ecam-tier ecam-advisory"><b>ADVISORY</b>Informazione, monitoraggio richiesto &mdash; monitorare.</div>
+  <div class="ecam-tier ecam-status"><b>STATUS</b>Informazione operativa non urgente &mdash; prendere nota.</div>
+  <p style="margin-top:16px">L'E/WD (Engine/Warning Display) mostra i messaggi critici; l'SD (System Display) mostra lo stato dei sistemi (HYD, ELEC, ecc.).</p>
+</section>
+
+<section class="phase" id="fbw">
+  <div class="phase-label">05 &mdash; SISTEMI</div>
+  <h2>Le tre leggi di controllo Fly-By-Wire</h2>
+  <div class="law-track">
+    <div class="law-step normal">
+      <div class="name">Normal Law</div>
+      <p>Protezioni complete attive (Alpha, Load Factor, Bank, Pitch). Il pilota non può portare l'aereo in stallo o overstress. Il sidestick comanda un tasso, non una posizione: se lo rilasci, l'aereo mantiene l'assetto.</p>
+    </div>
+    <div class="law-step alt">
+      <div class="name">Alternate Law</div>
+      <p>Protezioni parzialmente degradate. Massima attenzione alla gestione manuale.</p>
+    </div>
+    <div class="law-step direct">
+      <div class="name">Direct Law</div>
+      <p>Nessuna protezione. Comportamento simile a un aereo convenzionale. Solo in emergenza.</p>
+    </div>
+  </div>
+</section>
+
+<section class="phase" id="efb">
+  <div class="phase-label">06 &mdash; SETUP</div>
+  <h2>Configurazione dell'Electronic Flight Bag</h2>
+  <p><span class="pill">Version note</span> Utilizzare FlyByWire A32NX versione Development (include cFMS e modello idraulico avanzato).</p>
+  <div class="grid2">
+    <div class="card"><h3>SimBrief Username</h3><p style="margin:0">Sincronizzato per import OFP.</p></div>
+    <div class="card"><h3>Aircraft State</h3><p style="margin:0">Selezionato su "Cold &amp; Dark" per massimo realismo.</p></div>
+    <div class="card"><h3>Boarding Time</h3><p style="margin:0">"Instant" per simulazioni senza attesa.</p></div>
+    <div class="card"><h3>Weight Unit</h3><p style="margin:0">KG &mdash; standard europeo e Airbus.</p></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>ATSU/AOC</h3><p style="margin:0">Attivato &mdash; ricezione ATIS e clearances via MCDU.</p></div>
+</section>
+
+<section class="phase" id="throttle">
+  <div class="phase-label">07 &mdash; SETUP</div>
+  <h2>Calibrazione throttle: i detent</h2>
+  <div class="readout">
+TOGA &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">Massima avanzata (Take-Off / Go-Around)</span><br>
+FLX/MCT &nbsp;&nbsp;<span class="tag">Flex Take-Off o Max Continuous (un motore)</span><br>
+CL &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">Dopo decollo &mdash; attiva il CLB mode autothrust</span><br>
+IDLE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">Motori al minimo</span><br>
+REV IDLE/MAX <span class="tag">Inversori attivi / frenata massima</span>
+  </div>
+  <div class="card warn" style="margin-top:16px">
+    <p style="margin:0"><b>Attenzione:</b> i detent CL e IDLE devono essere calibrati dall'EFB prima di volare. Se la leva non raggiunge esattamente CLB dopo il decollo, l'autothrust non si attiverà. Sul PFD deve apparire "THR CLB".</p>
+  </div>
+</section>
+
+<section class="phase" id="ofp">
+  <div class="phase-label">08 &mdash; PIANIFICAZIONE</div>
+  <h2>Decodificare l'Operational Flight Plan</h2>
+  <div class="readout" style="margin-bottom:20px">
+AUA0361 / OFP AUA0361/001<br>
+LOWI/INNSBRUCK &rarr; LFKB/BASTIA CORSICA<br>
+ETD: 1030Z &nbsp; ETA: 1215Z &nbsp; BLOCK: 01H45M
+  </div>
+  <p>Identifica rotta, altitudine (es. FL250) e Cost Index (CI 35&ndash;45 per low-cost).</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Weight pipeline</h3>
+      <p style="margin:0">OEW + PLD &rarr; <b>ZFW</b> &rarr; ZFW + Block Fuel &rarr; <b>TOW</b></p>
+    </div>
+    <div class="card">
+      <h3>V-Speeds (reference)</h3>
+      <ul style="margin:0">
+        <li><b>V1</b> Decision Speed &mdash; oltre V1 il decollo continua anche con guasto</li>
+        <li><b>VR</b> Rotation Speed &mdash; inizio pull back sul sidestick</li>
+        <li><b>V2</b> Take-Off Safety Speed</li>
+        <li><b>VAPP/VLS</b> Approach speeds</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="phase" id="flex">
+  <div class="phase-label">09 &mdash; PIANIFICAZIONE</div>
+  <h2>Il concetto di "FLEX Temperature"</h2>
+  <div class="formula">
+    Real OAT: <span class="big">15°C</span> &nbsp;&rarr;&nbsp; FLEX Temp: <span class="big" style="color:var(--amber)">56°C</span> &nbsp;&rarr;&nbsp; Reduced Thrust
+  </div>
+  <p style="margin-top:20px">Il FLEX (Assumed Temperature Method) "inganna" il computer facendogli credere che fuori faccia molto più caldo del reale. Risultato: l'aereo calcola che l'aria sia meno densa e usa una spinta ridotta per decollare, riducendo usura motori e costi operativi.</p>
+  <div class="readout">MCDU: PERF &rarr; TAKE OFF &rarr; FLEX TEMP = <span class="val">56</span> <span class="tag">(il display mostrerà THR FLEX invece di TOGA)</span></div>
+  <div class="card warn" style="margin-top:16px">
+    <p style="margin:0"><b>Regola d'oro:</b> non usare FLEX se pista bagnata/ghiacciata, pista corta, vento contrario forte, o temperatura reale già molto alta.</p>
+  </div>
+</section>
+
+<section class="phase" id="mcdu">
+  <div class="phase-label">10 &mdash; MCDU</div>
+  <h2>Programmazione MCDU: pagine INIT A &amp; B</h2>
+  <div class="grid2">
+    <div class="readout">
+<span class="tag">INIT A</span><br>
+FROM/TO&nbsp;&nbsp;LOWI/LFKB<br>
+FLT NBR&nbsp;&nbsp;AUA361<br>
+CRZ FL&nbsp;&nbsp;&nbsp;&nbsp;250<br>
+COST INDEX 40
+    </div>
+    <div class="readout">
+<span class="tag">INIT B</span><br>
+ZFW/ZFWCG&nbsp;&nbsp;56.4/27.5<br>
+BLOCK FUEL&nbsp;&nbsp;6.2
+    </div>
+  </div>
+  <div class="card warn" style="margin-top:16px">
+    <p style="margin:0"><b>Ordine obbligatorio:</b> inserire SEMPRE prima ZFW/ZFWCG, poi il Block Fuel. Se inserisci prima il carburante, il MCDU non può calcolare correttamente il TOW, causando valori errati nelle pagine PERF di decollo.</p>
+  </div>
+</section>
+
+<section class="phase" id="fpln">
+  <div class="phase-label">11 &mdash; MCDU</div>
+  <h2>F-PLN &amp; pagine PERF</h2>
+  <p>Verifica F-PLN: controllare SID, STAR, ordine dei waypoint e risolvere eventuali messaggi di <b>DISCONTINUITY</b> non intenzionali.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>PERF Take Off</h3>
+      <ul style="margin:0">
+        <li>Inserire V1, VR, V2 (da OFP)</li>
+        <li>TRANS ALT (da AIP locale)</li>
+        <li>THR RED ALT / ACC ALT &mdash; 1500 ft AGL default</li>
+        <li>FLAPS/CONF &mdash; 1+F o 2</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>PERF Approach</h3>
+      <ul style="margin:0">
+        <li>QNH, temperatura, vento (es. 270/15) dall'ATIS</li>
+        <li>DH/MDA (minimums) dalle carte di avvicinamento</li>
+        <li>VAPP calcolata automaticamente (VLS + 5kt)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="phase" id="checklist">
+  <div class="phase-label">12 &mdash; FILOSOFIA</div>
+  <h2>La filosofia delle checklist Airbus</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Normal Checklist</h3>
+      <p style="margin:0"><b>Metodo DO-VERIFY:</b> prima si esegue l'azione a memoria/flusso, poi si legge la checklist ad alta voce (challenge &amp; response) per verificare che nulla sia stato dimenticato.</p>
+    </div>
+    <div class="card">
+      <h3>Abnormal / Emergency</h3>
+      <p style="margin:0"><b>Metodo READ-DO:</b> si legge il messaggio ECAM ad alta voce e si esegue fisicamente l'azione mentre la si legge. Nessuna anticipazione.</p>
+    </div>
+  </div>
+</section>
+
+<section class="phase" id="preflight">
+  <div class="phase-label">13 &mdash; ESECUZIONE</div>
+  <h2>Pre-flight e avviamento motori</h2>
+  <div class="card" style="margin-bottom:20px">
+    <h3>Before Start &mdash; cockpit prep completata</h3>
+    <p style="margin:0">Parking Brake ON, Fuel Qty checked vs OFP, Seat Belts ON, ADIRS in NAV, Baro Ref set.</p>
+  </div>
+  <div class="readout">
+1. <span class="val">BEACON ON</span> &mdash; essenziale, prima di aprire qualsiasi valvola<br>
+2. THR LEVERS &mdash; IDLE<br>
+3. ENG MODE SEL &mdash; IGN/START<br>
+4. ENG 2 MASTER ON &mdash; Airbus avvia sempre prima il motore 2<br>
+5. Attendere N2 &gt; 20%, verificare parametri stabili<br>
+6. ENG 1 MASTER ON<br>
+7. APU Bleed &amp; Master OFF &mdash; dopo l'avvio riuscito di entrambi
+  </div>
+</section>
+
+<section class="phase" id="taxi">
+  <div class="phase-label">14 &mdash; ESECUZIONE</div>
+  <h2>Rullaggio e preparazione al decollo</h2>
+  <div class="grid2">
+    <div class="card"><h3>Flight Controls</h3><p style="margin:0">Test completo superfici (L/R/UP/DN).</p></div>
+    <div class="card"><h3>Flaps &amp; Spoilers</h3><p style="margin:0">FLAPS CONF selezionata (verificare ECAM), spoilers in ARM.</p></div>
+    <div class="card"><h3>Trim</h3><p style="margin:0">Pitch trim coerente con CG da MCDU.</p></div>
+    <div class="card"><h3>ECAM</h3><p style="margin:0">Dark cockpit, nessun messaggio anomalo.</p></div>
+  </div>
+  <div class="card good" style="margin-top:16px">
+    <h3>Before Takeoff &mdash; ingresso in pista</h3>
+    <ul style="margin:0">
+      <li>Cabin crew avvisata</li>
+      <li>Transponder e TCAS in modalità TA/RA</li>
+      <li>Luci STROBE ON all'ingresso in pista</li>
+    </ul>
+  </div>
+</section>
+
+<section class="phase" id="takeoff">
+  <div class="phase-label">15 &mdash; ESECUZIONE</div>
+  <h2>La corsa di decollo: callout standardizzati</h2>
+  <div class="readout">
+    <div class="callout-row"><span class="who pf">PF</span><span>Leve su FLEX/TOGA &mdash; "THRUST SET"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>N1 stabile &mdash; "FLEX 56" (o "TOGA") / "POWER CHECKED"</span></div>
+    <div class="callout-row"><span class="who pf">PF</span><span>"GEAR F" &middot; "CHECKED"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>80 nodi &mdash; "EIGHTY KNOTS"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>V1 &mdash; "V ONE"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>VR &mdash; "ROTATE" (PF tira il sidestick, pitch 12&ndash;15°)</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>Liftoff &mdash; "POSITIVE RATE"</span></div>
+    <div class="callout-row"><span class="who pf">PF</span><span>"GEAR UP"</span></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card"><h3>400 ft AGL</h3><p style="margin:0">Autopilot disponibile &mdash; il PF lo inserisce.</p></div>
+    <div class="card"><h3>THR RED ALT</h3><p style="margin:0">FMA mostra "LVR CLB" lampeggiante &mdash; PF sposta le leve su CL detent.</p></div>
+  </div>
+</section>
+
+<section class="phase" id="climb">
+  <div class="phase-label">16 &mdash; ESECUZIONE</div>
+  <h2>Gestione della salita: FMA e transizione</h2>
+  <div class="grid3">
+    <div class="card"><h3>Thrust</h3><p style="margin:0">SRS &rarr; THR CLB</p></div>
+    <div class="card"><h3>Vertical</h3><p style="margin:0">SRS &rarr; CLB &rarr; ALT* &rarr; ALT</p></div>
+    <div class="card"><h3>Lateral</h3><p style="margin:0">RWY TRK &rarr; NAV</p></div>
+  </div>
+  <p style="margin-top:16px">Regola CRM: il PF annuncia "CHECKED" ad ogni cambio di stato dell'FMA.</p>
+  <div class="readout" style="margin-top:8px">
+    <div class="callout-row"><span class="who pf">PF</span><span>"Passing ten thousand feet &mdash; ANTI ICE &mdash; ENG AND WING &mdash; CHECK"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>verifica overhead &mdash; "ENG ANTI ICE ON, WING ANTI ICE ON &mdash; CHECKED"</span></div>
+  </div>
+  <p style="margin-top:12px;font-size:14px">Attivare se OAT &lt; +10°C con umidità visibile. Critico per la sicurezza.</p>
+</section>
+
+<section class="phase" id="cruise">
+  <div class="phase-label">17 &mdash; ESECUZIONE</div>
+  <h2>Crociera e calcolo della discesa (TOD)</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Loop di crociera</h3>
+      <ul style="margin:0">
+        <li>Fuel: verificare carburante attuale vs pianificato (OFP) ogni 30 min</li>
+        <li>ECAM/Overhead: scan regolare per dark cockpit</li>
+        <li>Meteo: aggiornare ATIS destinazione via EFB</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>La "regola del 3"</h3>
+      <p style="margin:0">Altitudine da perdere (migliaia di piedi) &times; 3 = distanza NM per iniziare la discesa.</p>
+    </div>
+  </div>
+  <div class="formula" style="margin-top:16px">
+    FL320 &rarr; 3.000 ft &nbsp;&mdash;&nbsp; da perdere: <span class="big">29.000 ft</span> &nbsp;&times; 3 &nbsp;=&nbsp; <span class="big">87 NM</span>
+    <div style="margin-top:8px; font-size:12px; color:var(--muted)">(aggiungere ~10 NM per decelerazione)</div>
+  </div>
+</section>
+
+<section class="phase" id="briefing">
+  <div class="phase-label">18 &mdash; ESECUZIONE</div>
+  <h2>Struttura dell'approach briefing</h2>
+  <p>Comunicazione standardizzata che il PF fa al PM prima del TOD.</p>
+  <div class="grid3">
+    <div class="card"><h3>1 &middot; Aeroporto</h3><p style="margin:0">Nome, ICAO, elevazione.</p></div>
+    <div class="card"><h3>2 &middot; Meteo</h3><p style="margin:0">QNH, vento, visibilità, nubi.</p></div>
+    <div class="card"><h3>3 &middot; Pista</h3><p style="margin:0">Numero, lunghezza, stato.</p></div>
+    <div class="card"><h3>4 &middot; Tipo approccio</h3><p style="margin:0">ILS / RNAV / VOR / visuale.</p></div>
+    <div class="card"><h3>5 &middot; Frequenze</h3><p style="margin:0">Freq. ILS e course.</p></div>
+    <div class="card"><h3>6 &middot; Minima</h3><p style="margin:0">DA/DH (ILS) o MDA.</p></div>
+    <div class="card"><h3>7 &middot; Configurazione</h3><p style="margin:0">Flaps, VAPP, autobrake (MED).</p></div>
+    <div class="card"><h3>8 &middot; Missed approach</h3><p style="margin:0">Procedura di go-around.</p></div>
+    <div class="card"><h3>9 &middot; Alternate</h3><p style="margin:0">Aeroporto e carburante residuo.</p></div>
+  </div>
+</section>
+
+<section class="phase" id="landing">
+  <div class="phase-label">19 &mdash; ESECUZIONE</div>
+  <h2>Atterraggio e configurazione finale</h2>
+  <div class="card" style="margin-bottom:16px">
+    <h3>Final checklist &mdash; ~1.000 ft AGL</h3>
+    <ul style="margin:0">
+      <li>Gear: LANDING GEAR DOWN (3 greens verificate)</li>
+      <li>Flaps: FULL o CONF 3 (secondo briefing)</li>
+      <li>Spoilers: ARMED (si aprono al tocco in pista)</li>
+      <li>Autobrake: MED verificato</li>
+      <li>ECAM: LANDING MEMO ALL GREEN (nessuna riga blu)</li>
+    </ul>
+  </div>
+  <div class="readout">
+    <div class="callout-row"><span class="who pf">PF</span><span>Touchdown &mdash; leve su REV MAX (se necessario)</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>"SPOILERS, DECEL, REVERSERS GREEN"</span></div>
+    <div class="callout-row"><span class="who">PM</span><span>80 kt &mdash; "SEVENTY KNOTS"</span></div>
+    <div class="callout-row"><span class="who pf">PF</span><span>Leve inversori a IDLE</span></div>
+  </div>
+</section>
+
+</div>
+
+<div class="closing">
+  <div class="wrap">
+    <div class="closing-loop">PLAN &middot; COMMUNICATE &middot; EXECUTE &middot; CONFIGURE</div>
+    <h2>La firma del pilota professionista</h2>
+    <div class="grid2" style="text-align:left; max-width:640px; margin:0 auto 30px">
+      <div class="card"><h3>Plan &mdash; SimBrief</h3><p style="margin:0">Precisione nei dati e nei pesi.</p></div>
+      <div class="card"><h3>Communicate &mdash; CRM</h3><p style="margin:0">Callout chiari, "dark cockpit" monitorato.</p></div>
+      <div class="card"><h3>Execute &mdash; Checklists</h3><p style="margin:0">Normal procedures first. Challenge &amp; response.</p></div>
+      <div class="card"><h3>Configure &mdash; MCDU/EFB</h3><p style="margin:0">Setup infallibile, "ZFW prima del fuel".</p></div>
+    </div>
+    <p>Hai smesso di "giocare con i sistemi". Ora operi la macchina con metodologia e consapevolezza.</p>
+    <div class="blue-skies">Blue skies.</div>
+    <div class="credit">Guida operativa A320 &middot; basata sui protocolli di volo di Alberto Mariani</div>
+  </div>
+</div>
+
+<script>
+const links = document.querySelectorAll('#navlinks a');
+const sections = document.querySelectorAll('section.phase');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      const id = entry.target.getAttribute('id');
+      links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+id));
+    }
+  });
+},{rootMargin:'-45% 0px -50% 0px'});
+sections.forEach(s=>obs.observe(s));
+</script>
+
+</body>
+</html>
